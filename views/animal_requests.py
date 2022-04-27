@@ -3,7 +3,8 @@ import json
 from models import Animal
 from models import Location
 
-selectsql = """SELECT a.id, a.name, a.breed, a.status, a.location_id,  a.customer_id FROM animal a"""
+selectsql_a = """SELECT a.id, a.name, a.breed, a.status, a.location_id,  a.customer_id FROM animal a"""
+selectsql = """SELECT a.id, a.name, a.breed, a.status, a.location_id,  a.customer_id, l.name location_name, l.address location_address FROM Animal a JOIN Location l ON l.id = a.location_id"""
 selectwhere = selectsql + """ WHERE a.id = ?"""
 selectlocation = selectsql + """ WHERE a.location_id = ?"""
 selectstatus = selectsql + """ WHERE a.status = ?"""
@@ -40,9 +41,9 @@ def get_all_animals():
             print(animal)
             print("****" * 100)
             # Create a Location instance from the current row
-            #location = Location(row['id'], row['name'], row['address'])
+            location = Location(row['id'], row['location_name'], row['location_address'])
             # Add the dictionary representation of the location to the animal
-            #animal.location = location.__dict__                            
+            animal.location = location.__dict__                            
 
             animals.append(animal.__dict__)
 
