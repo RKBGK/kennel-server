@@ -1,12 +1,14 @@
 import sqlite3
 import json
 from models import Animal
+from models import Location
 
 selectsql = """SELECT a.id, a.name, a.breed, a.status, a.location_id,  a.customer_id FROM animal a"""
 selectwhere = selectsql + """ WHERE a.id = ?"""
 selectlocation = selectsql + """ WHERE a.location_id = ?"""
 selectstatus = selectsql + """ WHERE a.status = ?"""
 sqldelete = """ DELETE FROM animal WHERE id = ?"""
+sqlupdate = """ UPDATE Animal SET name = ?, breed = ?, status = ?, location_id = ?, customer_id = ?  WHERE id = ?"""
 def get_all_animals():
     # Open a connection to the database
     with sqlite3.connect("./kennel.sqlite3") as conn:
@@ -34,6 +36,13 @@ def get_all_animals():
             animal = Animal(row['id'], row['name'], row['breed'],
                             row['status'], row['location_id'],
                             row['customer_id'])
+            print("****" *  100)
+            print(animal)
+            print("****" * 100)
+            # Create a Location instance from the current row
+            #location = Location(row['id'], row['name'], row['address'])
+            # Add the dictionary representation of the location to the animal
+            #animal.location = location.__dict__                            
 
             animals.append(animal.__dict__)
 
@@ -94,7 +103,7 @@ def delete_animal_pop(id):
     if animal_index >= 0:
         ANIMALS.pop(animal_index)
         
-def update_animal(id, new_animal):
+def update_animal_old(id, new_animal):
     # Iterate the ANIMALS list, but use enumerate() so that
     # you can access the index value of each item.
     for index, animal in enumerate(ANIMALS):
@@ -102,7 +111,26 @@ def update_animal(id, new_animal):
             # Found the animal. Update the value.
             ANIMALS[index] = new_animal
             break   
+def update_animal(id, new_animal):
+    with sqlite3.connect("./kennel.sqlite3") as conn:
+        db_cursor = conn.cursor()
+        # print(f"name {new_animal['name']}, breed {new_animal['breed']},status{new_animal['status']}, location {new_animal['location_id']}, customer {new_animal['customer_id']}, id{id},")         
 
+        db_cursor.execute(sqlupdate, (new_animal['name'], new_animal['breed'],
+              new_animal['status'], new_animal['location_id'],
+              new_animal['customer_id'], id, ))
+
+       
+
+        rows_affected = db_cursor.rowcount
+
+    if rows_affected == 0:
+        # Forces 404 response by main module
+        return False
+    else:
+        # Forces 204 response by main module
+        return True
+    
 def get_animal_bycustomerId(id):
     # Variable to hold the found animal, if it exists
     animalbycustomerId = []
